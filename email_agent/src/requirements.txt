@@ -1,0 +1,8 @@
+langchain
+openai
+google-api-python-client
+google-auth
+google-auth-oauthlib
+python-dotenv
+langgraph 
+langchain_community
