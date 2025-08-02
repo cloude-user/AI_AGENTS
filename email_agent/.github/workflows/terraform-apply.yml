@@ -1,0 +1,52 @@
+name: Terraform plan , approve and apply
+description: This workflow applies Terraform changes to the AWS infrastructure.
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/**'
+    types: [opened, synchronize, reopened]
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+    # Step 1: Checkout Repository
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Terraform
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.8.5
+
+    # Step 3: Configure AWS Credentials
+    - name: Configure AWS Credentials
+      id: aws-credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{ secrets.AWS_REGION }}   # AWS region from secrets
+        role-to-assume: ${{ secrets.terraform-role }} arn:aws:iam::692859915147:role/sundeep # ARN of the role to assume
+        role-session-name: TerraformSession
+        audience: sts.amazonaws.com
+
+    # Step 4: Verify AWS Credentials
+    - name: Verify AWS Credentials
+      run: aws sts get-caller-identity
+
+    # Step 5: Initialize Terraform
+    - name: Terraform Init
+      run: terraform init
+      working-directory: terraform
+
+    - name: Terraform Plan
+      run: terraform plan -out=tfplan
+      working-directory: terraform
+
+    # Step 6: Apply Terraform Changes
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+      working-directory: terraform
