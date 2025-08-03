@@ -1,12 +1,10 @@
-# # main.py
+from agent.agent_graph import agent_executor
 
-# # from agent.agent_graph import agent_executor
-
-# # if __name__ == "__main__":
-# #     print("🚀 Running Email Agentic Cleaner")
-# #     final_state = agent_executor.invoke({})
-# #     print("✅ Agent Finished. Final state:")
-# #     print(final_state)
+if __name__ == "__main__":
+    print("🚀 Running Email Agentic Cleaner")
+    final_state = agent_executor.invoke({})
+    print("✅ Agent Finished. Final state:")
+    print(final_state)
 
 # from agent.tools.classifier import classify_email
 # from agent.tools.delete_email import delete_email
@@ -50,14 +48,3 @@
 # if __name__ == "__main__":
 #     main()
 
-from agent.tools.classifier import classify_email
-
-if __name__ == "__main__":
-    sample_email = {
-        "subject": "Interview",
-        "sender": "promo@amazon.com",
-        "body": "we are looking for a DevOps engineer with 5+ years of experience. Apply now!",
-    }
-
-    classification = classify_email(sample_email)
-    print("Email Classification:", classification)
