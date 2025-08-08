@@ -7,8 +7,8 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy source code into /var/task (Lambda default work dir)
-COPY email_agent/src/ ./
+# Copy all source code into Lambda work dir
+COPY . .
 
 # Command to run Lambda
 CMD ["main.lambda_handler"]
