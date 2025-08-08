@@ -17,7 +17,8 @@ resource "aws_ecr_lifecycle_policy" "gmail_agent_policy" {
         description  = "Keep last 5 tagged images"
         selection = {
           tagStatus     = "tagged"
-          # tagPrefixList has been removed, which targets all tagged images
+          # Changed to "v" to match versioned tags like v1.0.0, v1.0.1 etc.
+          tagPrefixList = ["v"]
           countType     = "imageCountMoreThan"
           countNumber   = 5
         }
