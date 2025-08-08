@@ -8,12 +8,12 @@ on:
     paths:
       - 'email_agent/terraform/ecr/**'
     types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
-      - feature/**
-    paths:
-      - 'email_agent/terraform/ecr/**'
+  # push:
+  #   branches:
+  #     - main
+  #     - feature/**
+  #   paths:
+  #     - 'email_agent/terraform/ecr/**'
 
 
 jobs:

@@ -3,7 +3,7 @@ resource "aws_ecr_repository" "gmail_agent_repo" {
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
-    scan_on_push = false
+    scan_on_push = true
   }
 }
 
@@ -17,7 +17,8 @@ resource "aws_ecr_lifecycle_policy" "gmail_agent_policy" {
         description  = "Keep last 5 tagged images"
         selection = {
           tagStatus     = "tagged"
-          # tagPrefixList = [] # This line has been removed
+          # This change satisfies the ECR API's requirement
+          tagPrefixList = [""] 
           countType     = "imageCountMoreThan"
           countNumber   = 5
         }
