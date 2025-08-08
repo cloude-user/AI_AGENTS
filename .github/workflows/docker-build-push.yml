@@ -5,7 +5,8 @@ on:
     inputs:
       bump:
         description: 'Which part to bump: major|minor|patch'
-    options:
+        type: choice
+        options:
           - major
           - minor
           - patch
