@@ -88,25 +88,15 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION \
           | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-    #   - name: Build Docker image
-    #     id: build-image
-    #     run: |
-    #       IMAGE_TAG=${{ steps.push_tag.outputs.image_tag }}
-    #       ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
-    #       docker build -t ${ECR_REPO_NAME}:${IMAGE_TAG} -f src/Dockerfile src/
-    #       docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
-    #       docker tag ${ECR_REPO_NAME}:${IMAGE_TAG} ${ECR_URI}:latest
-    #       echo "built_image=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
-
       - name: Build and tag Docker image
         id: build-image
         env:
           IMAGE_TAG: ${{ steps.push_tag.outputs.image_tag }}
           ECR_URI: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}
         run: |
-          # Use the root of the repository as the build context
-          # The -f flag points to the Dockerfile relative to the build context.
-          docker build -t ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} -f email_agent/src/Dockerfile .
+          # The command below uses email_agent/src as the build context.
+          # The -f flag is now not needed since the Dockerfile is in the context directory.
+          docker build -t ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} email_agent/src/
           docker tag ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} ${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}
           docker tag ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} ${{ env.ECR_URI }}:latest
           echo "built_image=${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}" >> "$GITHUB_OUTPUT"
