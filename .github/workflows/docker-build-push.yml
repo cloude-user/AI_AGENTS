@@ -23,7 +23,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write  # required for checkout
       id-token: write   # required for OIDC assume role
       issues: write
       actions: write
