@@ -48,10 +48,6 @@ jobs:
         with:
           terraform_version: 1.8.5
 
-      # Step 4: Verify AWS Credentials (optional, but good for debugging)
-      - name: Verify AWS Credentials
-        run: aws sts get-caller-identity
-
       # Step 5: Initialize Terraform
       - name: Terraform Init
         run: terraform init
