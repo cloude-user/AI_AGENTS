@@ -5,12 +5,17 @@ resource "aws_lambda_function" "gmail_agent" {
   package_type  = "Image"
   image_uri     = "${aws_ecr_repository.gmail_agent_repo.repository_url}:${var.image_tag}"
 
-  memory_size = 1536
+  memory_size = 
   timeout     = 300
 
   environment {
     variables = {
-      OPENAI_API_KEY = var.openai_api_key
+      OPENAI_API_KEY = var.OPENAI_API_KEY,
+      GMAIL_TOKEN = var.GMAIL_TOKEN,
+      GMAIL_REFRESH_TOKEN = var.GMAIL_REFRESH_TOKEN,
+      GMAIL_CLIENT_ID = var.GMAIL_CLIENT_ID,
+      GMAIL_CLIENT_SECRET = var.GMAIL_CLIENT_SECRET
+
     }
   }
 

@@ -1,19 +1,22 @@
-name: Terraform init, Plan and apply.
+name: Terraform apply-lambda.
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'email-agent/terraform/**'
-    types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
-      - feature/**
-    paths:
-      - 'email-agent/terraform/**'
+    inputs:
+      paths:
+        default: 'email_agent/terraform/lambda/**'
+#   pull_request:
+#     branches:
+#       - main
+#     paths:
+#       - 'email_agent/terraform/lambda/**'
+#     types: [opened, synchronize, reopened]
+  # push:
+  #   branches:
+  #     - main
+  #     - feature/**
+  #   paths:
+  #     - 'email_agent/terraform/ecr/**'
 
 
 jobs:
@@ -25,7 +28,7 @@ jobs:
     defaults:
       run:
         # Correct working directory to a specific path
-        working-directory: 'email-agent/terraform'
+        working-directory: 'email_agent/terraform/lambda/'
 
     steps:
       # Step 1: Checkout Repository
@@ -47,10 +50,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3.1.1
         with:
           terraform_version: 1.8.5
-
-      # Step 4: Verify AWS Credentials (optional, but good for debugging)
-      - name: Verify AWS Credentials
-        run: aws sts get-caller-identity
 
       # Step 5: Initialize Terraform
       - name: Terraform Init
