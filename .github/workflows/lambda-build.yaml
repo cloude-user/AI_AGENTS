@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'email_agent/terraform/ecr/**'
+      - 'email_agent/terraform/lambda/**'
     types: [opened, synchronize, reopened]
   # push:
   #   branches:
@@ -25,7 +25,7 @@ jobs:
     defaults:
       run:
         # Correct working directory to a specific path
-        working-directory: 'email_agent/terraform/ecr/'
+        working-directory: 'email_agent/terraform/lambda/'
 
     steps:
       # Step 1: Checkout Repository

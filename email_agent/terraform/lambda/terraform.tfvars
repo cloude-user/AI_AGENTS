@@ -1,2 +1,2 @@
 aws_region = "us-east-2"
-openai_api_key    = "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"
+openai_api_key    = "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"

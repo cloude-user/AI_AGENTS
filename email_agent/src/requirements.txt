@@ -1,8 +1,7 @@
-langchain
+boto3
+google-api-python-client==2.92.0
+google-auth==2.22.0
+google-auth-oauthlib==1.2.0
 openai
-google-api-python-client
-google-auth
-google-auth-oauthlib
-python-dotenv
-langgraph 
-langchain_community
+langchain
+# langgraph optional (we kept a simple DAG so LangGraph can be layered later)
