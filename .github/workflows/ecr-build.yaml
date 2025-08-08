@@ -2,12 +2,16 @@ name: Terraform apply-ecr.
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'email_agent/terraform/ecr/**'
-    types: [opened, synchronize, reopened]
+    inputs:
+      paths:
+        default: 'email_agent/terraform/ecr/**'
+
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'email_agent/terraform/ecr/**'
+  #   types: [opened, synchronize, reopened]
   # push:
   #   branches:
   #     - main
