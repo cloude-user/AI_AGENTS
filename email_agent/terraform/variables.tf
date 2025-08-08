@@ -1,22 +1,26 @@
-variable "project_name" {
-  description = "Name prefix for all resources"
-  type        = string
+variable "aws_region" {
+  type    = string
+  default = "us-east-1"
 }
 
-variable "region" {
-  description = "AWS region"
-  type        = string
-  default     = "us-east-1"
+variable "lambda_role_name" {
+  type    = string
+  default = "gmail-agent-lambda-role"
+}
+
+variable "ecr_repo_name" {
+  type    = string
+  default = "gmail-agent"
+}
+
+# Image tag variable (can be set via TF_VAR_image_tag or pipeline)
+variable "image_tag" {
+  type    = string
+  default = "latest"
 }
 
 variable "openai_api_key" {
-  description = "OpenAI API key"
-  type        = string
-  sensitive   = true
-}
-
-variable "schedule_expression" {
-  description = "Cron schedule for Lambda"
-  type        = string
-  default     = "rate(1 day)"
+  type      = string
+  sensitive = true
+  default   = ""
 }

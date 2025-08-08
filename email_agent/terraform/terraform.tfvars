@@ -1,4 +1,2 @@
-project_name      = "agentic-gmail-cleaner"
-region            = "us-east-1"
-openai_api_key    = "sk-REPLACE_ME"
-schedule_expression = "cron(0 7 * * ? *)" # everyday 7am UTC
+aws_region = "us-east-2"
+openai_api_key    = "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"
