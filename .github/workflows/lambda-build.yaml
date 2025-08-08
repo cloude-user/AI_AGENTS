@@ -25,7 +25,7 @@ jobs:
     defaults:
       run:
         # Correct working directory to a specific path
-        working-directory: 'email-agent/terraform'
+        working-directory: 'email_agent/terraform'
 
     steps:
       # Step 1: Checkout Repository
