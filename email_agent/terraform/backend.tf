@@ -1,3 +1,5 @@
+#backend image_scanning_configuration
+
 terraform {
   backend "s3" {
     bucket = "sundeep43-cloud-terraform43"
