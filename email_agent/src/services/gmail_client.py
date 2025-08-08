@@ -13,7 +13,7 @@ def get_gmail_service():
     )
     return build("gmail", "v1", credentials=creds)
 
-def fetch_unread_emails(max_results=5):
+def fetch_unread_emails(max_results=15):
     service = get_gmail_service()
     results = service.users().messages().list(userId="me", labelIds=["INBOX", "UNREAD"], maxResults=max_results).execute()
     messages = results.get("messages", [])

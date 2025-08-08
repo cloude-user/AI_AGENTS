@@ -1,0 +1,67 @@
+name: Terraform apply-ecr.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'email_agent/terraform/ecr/**'
+    types: [opened, synchronize, reopened]
+  # push:
+  #   branches:
+  #     - main
+  #     - feature/**
+  #   paths:
+  #     - 'email_agent/terraform/ecr/**'
+
+
+jobs:
+  terraform:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    defaults:
+      run:
+        # Correct working directory to a specific path
+        working-directory: 'email_agent/terraform/ecr/'
+
+    steps:
+      # Step 1: Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Configure AWS Credentials using OIDC
+      - name: Configure AWS Credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.TERRAFORM_ROLE }}
+          role-session-name: TerraformSession
+          audience: sts.amazonaws.com
+
+      # Step 3: Set up Terraform CLI
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3.1.1
+        with:
+          terraform_version: 1.8.5
+
+      # Step 5: Initialize Terraform
+      - name: Terraform Init
+        run: terraform init
+
+      # Step 6: Validate Terraform configuration
+      - name: Terraform Validate
+        run: terraform validate
+
+      # Step 7: Run Terraform Plan and save output to a file
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+
+      # Step 8: Apply the plan (This is commented out, as it's not a best practice on PRs)
+      # You would typically have a separate workflow for 'apply' that runs on merge to main.
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan

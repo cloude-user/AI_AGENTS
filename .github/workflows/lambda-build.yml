@@ -1,4 +1,4 @@
-name: Terraform init, Plan and apply.
+name: Terraform apply-lambda.
 
 on:
   workflow_dispatch:
