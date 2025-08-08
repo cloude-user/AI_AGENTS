@@ -6,14 +6,14 @@ on:
     branches:
       - main
     paths:
-      - 'email_agent/terraform/**'
+      - 'email_agent/terraform/ecr/**'
     types: [opened, synchronize, reopened]
   push:
     branches:
       - main
       - feature/**
     paths:
-      - 'email_agent/terraform/**'
+      - 'email_agent/terraform/ecr/**'
 
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
     defaults:
       run:
         # Correct working directory to a specific path
-        working-directory: 'email_agent/terraform'
+        working-directory: 'email_agent/terraform/ecr/'
 
     steps:
       # Step 1: Checkout Repository
