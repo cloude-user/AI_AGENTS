@@ -1,19 +1,20 @@
 name: Terraform init, Plan and apply.
 
 on:
-  # pull_request:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'email-agent/terraform/**'
-  #   types: [opened, synchronize, reopened]
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'email-agent/terraform/**'
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
       - feature/**
     paths:
       - 'email-agent/terraform/**'
-  workflow_dispatch:
+
 
 jobs:
   terraform:
