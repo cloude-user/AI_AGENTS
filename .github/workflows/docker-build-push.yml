@@ -1,131 +1,131 @@
-# name: Build & Deploy Gmail Agent
+name: Build & Deploy Gmail Agent
 
-# on:
+on:
 #   pull_request:
 #     branches: [ "main" ]
 #   push:
 #     tags:
 #       - 'v*.*.*'   # matched semver tags you may push manually
-#   workflow_dispatch:
+  workflow_dispatch:
 
-# env:
-#   REPO_NAME: gmail-agent
+env:
+  REPO_NAME: gmail-agent
 
-# jobs:
-#   build-and-push:
-#     runs-on: ubuntu-latest
-#     permissions:
-#       contents: read
-#       id-token: write   # for OIDC
-#       packages: write
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # for OIDC
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-#       - name: Set up QEMU (for Docker multiarch)
-#         uses: docker/setup-qemu-action@v2
+      - name: Set up QEMU (for Docker multiarch)
+        uses: docker/setup-qemu-action@v2
 
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-#       - name: Configure AWS credentials for ECR (OIDC or static)
-#         uses: aws-actions/configure-aws-credentials@v2
-#         with:
-#           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials for ECR (OIDC or static)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Login to ECR
-#         id: login-ecr
-#         run: |
-#           ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-#           REPO=${{ env.REPO_NAME }}
-#           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      - name: Login to ECR
+        id: login-ecr
+        run: |
+          ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          REPO=${{ env.REPO_NAME }}
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-#       - name: Determine image tag (semver)
-#         id: tag
-#         run: |
-#           # If the push was triggered by a tag, use the tag name (strip v)
-#           if [ "${GITHUB_REF_TYPE}" = "tag" ] || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-#             TAG=$(echo "${GITHUB_REF}" | sed -E 's/refs\/tags\/v?//')
-#             echo "Using TAG from ref: $TAG"
-#           else
-#             # get latest tag and bump patch
-#             LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
-#             echo "Latest tag: $LATEST_TAG"
-#             IFS='.' read -r MAJ MIN PATCH <<< "${LATEST_TAG}"
-#             if [ -z "$MAJ" ]; then MAJ=0; fi
-#             if [ -z "$MIN" ]; then MIN=0; fi
-#             if [ -z "$PATCH" ]; then PATCH=0; fi
-#             PATCH=$((PATCH + 1))
-#             TAG="${MAJ}.${MIN}.${PATCH}"
-#             echo "Auto bump to tag: $TAG"
-#           fi
-#           echo "tag=$TAG" >> $GITHUB_OUTPUT
+      - name: Determine image tag (semver)
+        id: tag
+        run: |
+          # If the push was triggered by a tag, use the tag name (strip v)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] || [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG=$(echo "${GITHUB_REF}" | sed -E 's/refs\/tags\/v?//')
+            echo "Using TAG from ref: $TAG"
+          else
+            # get latest tag and bump patch
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+            echo "Latest tag: $LATEST_TAG"
+            IFS='.' read -r MAJ MIN PATCH <<< "${LATEST_TAG}"
+            if [ -z "$MAJ" ]; then MAJ=0; fi
+            if [ -z "$MIN" ]; then MIN=0; fi
+            if [ -z "$PATCH" ]; then PATCH=0; fi
+            PATCH=$((PATCH + 1))
+            TAG="${MAJ}.${MIN}.${PATCH}"
+            echo "Auto bump to tag: $TAG"
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-#       - name: Build Docker image
-#         id: build-image
-#         run: |
-#           ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-#           REPO=${{ env.REPO_NAME }}
-#           TAG=${{ steps.tag.outputs.tag }}
-#           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
-#           docker build -t ${IMAGE_URI} -f src/Dockerfile .
-#           echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_OUTPUT
-#           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+      - name: Build Docker image
+        id: build-image
+        run: |
+          ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          REPO=${{ env.REPO_NAME }}
+          TAG=${{ steps.tag.outputs.tag }}
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
+          docker build -t ${IMAGE_URI} -f src/Dockerfile .
+          echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
 
-#       - name: Push image to ECR
-#         run: |
-#           ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-#           REPO=${{ env.REPO_NAME }}
-#           TAG=${{ steps.tag.outputs.tag }}
-#           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
-#           docker push ${IMAGE_URI}
-#           # also push :latest for convenience
-#           docker tag ${IMAGE_URI} ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:latest
-#           docker push ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:latest
+      - name: Push image to ECR
+        run: |
+          ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          REPO=${{ env.REPO_NAME }}
+          TAG=${{ steps.tag.outputs.tag }}
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
+          docker push ${IMAGE_URI}
+          # also push :latest for convenience
+          docker tag ${IMAGE_URI} ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:latest
+          docker push ${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:latest
 
-#       - name: (Optional) Create Git tag and push back
-#         if: github.ref == 'refs/heads/main'
-#         run: |
-#           TAG=${{ steps.tag.outputs.tag }}
-#           git config user.name "github-actions[bot]"
-#           git config user.email "github-actions[bot]@users.noreply.github.com"
-#           git tag -a "v${TAG}" -m "Release v${TAG}"
-#           git push origin "v${TAG}" || echo "Tag push failed (already exists?)"
+      - name: (Optional) Create Git tag and push back
+        if: github.ref == 'refs/heads/main'
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${TAG}" -m "Release v${TAG}"
+          git push origin "v${TAG}" || echo "Tag push failed (already exists?)"
 
-#       - name: Update Lambda to new image
-#         id: update-lambda
-#         run: |
-#           ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
-#           REPO=${{ env.REPO_NAME }}
-#           TAG=${{ steps.tag.outputs.tag }}
-#           IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
-#           echo "Updating lambda to image ${IMAGE_URI}"
-#           # Update Lambda function (assumes function name 'gmail-agent')
-#           aws lambda update-function-code --function-name gmail-agent --image-uri ${IMAGE_URI} --region ${AWS_REGION}
-#           echo "lambda_image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+      - name: Update Lambda to new image
+        id: update-lambda
+        run: |
+          ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          REPO=${{ env.REPO_NAME }}
+          TAG=${{ steps.tag.outputs.tag }}
+          IMAGE_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO}:${TAG}
+          echo "Updating lambda to image ${IMAGE_URI}"
+          # Update Lambda function (assumes function name 'gmail-agent')
+          aws lambda update-function-code --function-name gmail-agent --image-uri ${IMAGE_URI} --region ${AWS_REGION}
+          echo "lambda_image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
-#       - name: Terraform Plan (optional)
-#         if: ${{ always() && (github.event_name == 'workflow_dispatch' || env.TERRAFORM_PLAN == 'true') }}
-#         env:
-#           IMAGE_TAG: ${{ steps.tag.outputs.tag }}
-#           AWS_REGION: ${{ env.AWS_REGION }}
-#         run: |
-#           chmod +x scripts/terraform_plan.sh
-#           IMAGE_TAG=${{ steps.tag.outputs.tag }} ./scripts/terraform_plan.sh
+      - name: Terraform Plan (optional)
+        if: ${{ always() && (github.event_name == 'workflow_dispatch' || env.TERRAFORM_PLAN == 'true') }}
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          chmod +x scripts/terraform_plan.sh
+          IMAGE_TAG=${{ steps.tag.outputs.tag }} ./scripts/terraform_plan.sh
 
-#       - name: Terraform Apply (optional)
-#         if: ${{ always() && (github.event_name == 'workflow_dispatch' || env.TERRAFORM_APPLY == 'true') }}
-#         env:
-#           IMAGE_TAG: ${{ steps.tag.outputs.tag }}
-#           AWS_REGION: ${{ env.AWS_REGION }}
-#         run: |
-#           chmod +x scripts/terraform_apply.sh
-#           IMAGE_TAG=${{ steps.tag.outputs.tag }} ./scripts/terraform_apply.sh
+      - name: Terraform Apply (optional)
+        if: ${{ always() && (github.event_name == 'workflow_dispatch' || env.TERRAFORM_APPLY == 'true') }}
+        env:
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          chmod +x scripts/terraform_apply.sh
+          IMAGE_TAG=${{ steps.tag.outputs.tag }} ./scripts/terraform_apply.sh
 
-#       - name: Output deploy info
-#         run: |
-#           echo "Deployed image: ${{ steps.update-lambda.outputs.lambda_image_uri }}"
-#           echo "Image tag: ${{ steps.tag.outputs.tag }}"
+      - name: Output deploy info
+        run: |
+          echo "Deployed image: ${{ steps.update-lambda.outputs.lambda_image_uri }}"
+          echo "Image tag: ${{ steps.tag.outputs.tag }}"

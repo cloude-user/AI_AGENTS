@@ -31,7 +31,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: ${{ secrets.terraform-role }}
+          role-to-assume: ${{ secrets.TERRAFORM_ROLE }}
           role-session-name: TerraformSession
           audience: sts.amazonaws.com
 
