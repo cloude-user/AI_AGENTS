@@ -17,8 +17,7 @@ resource "aws_ecr_lifecycle_policy" "gmail_agent_policy" {
         description  = "Keep last 5 tagged images"
         selection = {
           tagStatus     = "tagged"
-          # This change satisfies the ECR API's requirement
-          tagPrefixList = [""] 
+          # tagPrefixList has been removed, which targets all tagged images
           countType     = "imageCountMoreThan"
           countNumber   = 5
         }
