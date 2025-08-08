@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'email-agent/terraform/**'
+      - 'email_agent/terraform/**'
     types: [opened, synchronize, reopened]
   push:
     branches:
