@@ -48,7 +48,7 @@ jobs:
 
       - name: Fetch all tags and history
         run: |
-          git fetch --depth=0 --tags
+          git fetch --unshallow --tags || git fetch --tags
           echo "=== Available tags ==="
           git tag --sort=-version:refname | head -10 || echo "No tags found"
           echo "=== Current branch and commit ==="
