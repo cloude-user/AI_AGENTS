@@ -47,3 +47,7 @@ variable "gmail_client_secret" {
 variable "ecr_uri" {
   type = string
 }
+
+variable "gmail_json_token" {
+  type = string
+}
