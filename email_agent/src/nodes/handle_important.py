@@ -1,9 +1,10 @@
-from services.llm_client import generate_reply
-from services.gmail_client import draft_reply
+from ..services.gmail_client import GmailClient
+from ..state import AppState
 
-def handle_important_node(state):
-    email = state.current_email
-    reply = generate_reply(email["subject"], email["body"])
-    state.reply = reply
-    draft_reply(email, reply)
+def handle_important_node(state: AppState) -> AppState:
+    gmail = GmailClient()
+    for email in state.get("emails", []):
+        if email.get("is_important"):
+            gmail.mark_as_important(email["id"])
+            state["processed_count"] = state.get("processed_count", 0) + 1
     return state

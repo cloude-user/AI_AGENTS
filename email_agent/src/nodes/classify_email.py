@@ -1,7 +1,10 @@
-from services.llm_client import classify_email
+from ..services.llm_client import LLMClient
+from ..state import AppState
 
-def classify_email_node(state):
-    email = state.current_email
-    category = classify_email(email["subject"], email["body"])
-    state.classification = category
+def classify_email_node(state: AppState) -> AppState:
+    llm = LLMClient()
+    for email in state.get("emails", []):
+        classification = llm.classify(email["snippet"])
+        email["classification"] = classification
+        email["is_important"] = classification.lower() == "important"
     return state

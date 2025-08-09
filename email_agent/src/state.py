@@ -1,12 +1,14 @@
-from langgraph.graph import State
-from typing import List, Dict, Optional
+from typing import TypedDict, Optional, List
 
-class EmailState(State):
-    # List of email objects being processed
-    emails: List[Dict] = []
-    # Current email index (for processing in sequence)
-    current_email: Optional[Dict] = None
-    # Classification result for the current email
-    classification: Optional[str] = None
-    # Generated reply if applicable
-    reply: Optional[str] = None
+class EmailData(TypedDict, total=False):
+    id: str
+    threadId: str
+    labelIds: List[str]
+    snippet: str
+    payload: dict
+    classification: Optional[str]
+    is_important: Optional[bool]
+
+class AppState(TypedDict, total=False):
+    emails: List[EmailData]
+    processed_count: int

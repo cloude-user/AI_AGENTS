@@ -1,23 +1,23 @@
 name: Build, Tag, Push to ECR
 
 on:
-  workflow_dispatch:
-    inputs:
-      bump:
-        description: 'Which part to bump: major|minor|patch'
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-        required: true
-        default: 'patch'
-#   pull_request:
-#     branches:
-#       - main
-#     paths:
-#       - 'email_agent/src/**'
-#     types: [opened, synchronize, reopened]
+  # workflow_dispatch:
+  #   inputs:
+  #     bump:
+  #       description: 'Which part to bump: major|minor|patch'
+  #       type: choice
+  #       options:
+  #         - major
+  #         - minor
+  #         - patch
+  #       required: true
+  #       default: 'patch'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'email_agent/src/**'
+    types: [opened, synchronize, reopened]
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
