@@ -5,7 +5,7 @@ resource "aws_lambda_function" "gmail_agent" {
   package_type  = "Image"
   image_uri     = "${var.ecr_uri}:${var.image_tag}"
 
-  memory_size = 1536
+  memory_size = 600
   timeout     = 300
 
   environment {
@@ -15,6 +15,7 @@ resource "aws_lambda_function" "gmail_agent" {
       GMAIL_REFRESH_TOKEN = var.gmail_refresh_token,
       GMAIL_CLIENT_ID = var.gmail_client_id,
       GMAIL_CLIENT_SECRET = var.gmail_client_secret
+      GMAIL_TOKEN_JSON = var.gmail_json_token
 
     }
   }
