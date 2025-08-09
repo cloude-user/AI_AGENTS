@@ -10,11 +10,11 @@ resource "aws_lambda_function" "gmail_agent" {
 
   environment {
     variables = {
-      OPENAI_API_KEY = var.OPENAI_API_KEY,
-      GMAIL_TOKEN = var.GMAIL_TOKEN,
-      GMAIL_REFRESH_TOKEN = var.GMAIL_REFRESH_TOKEN,
-      GMAIL_CLIENT_ID = var.GMAIL_CLIENT_ID,
-      GMAIL_CLIENT_SECRET = var.GMAIL_CLIENT_SECRET
+      OPENAI_API_KEY = var.openai_api_key,
+      GMAIL_TOKEN = var.gmail_token,
+      GMAIL_REFRESH_TOKEN = var.gmail_refresh_token,
+      GMAIL_CLIENT_ID = var.gmail_client_id,
+      GMAIL_CLIENT_SECRET = var.gmail_client_secret
 
     }
   }

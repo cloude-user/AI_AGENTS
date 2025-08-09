@@ -21,18 +21,18 @@ variable "openai_api_key" {
   default   = ""
 }
 
-variable "GMAIL_TOKEN"{
+variable "gmail_token"{
 
 } 
-variable "GMAIL_REFRESH_TOKEN" {
+variable "gmail_refresh_token {
 
 }
-variable "GMAIL_CLIENT_ID" {
+variable "gmail_client_id {
 
 }
-variable "GMAIL_CLIENT_SECRET " {
+variable "gmail_client_secret {
 
 }
 variable "ecr_uri" {
-  
+
 }
