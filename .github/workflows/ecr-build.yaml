@@ -1,18 +1,22 @@
 name: Terraform apply-ecr.
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'email_agent/terraform/lambda/**'
-    types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
-      - feature/**
-    paths:
-      - 'email_agent/terraform/lambda/**'
+  workflow_dispatch:
+    inputs:
+      paths:
+        default: 'email_agent/terraform/ecr/**'
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'email_agent/terraform/lambda/**'
+  #   types: [opened, synchronize, reopened]
+  # push:
+  #   branches:
+  #     - main
+  #     - feature/**
+  #   paths:
+  #     - 'email_agent/terraform/lambda/**'
 
 
 jobs:
@@ -24,7 +28,7 @@ jobs:
     defaults:
       run:
         # Correct working directory to a specific path
-        working-directory: 'email_agent/terraform/lambda/'
+        working-directory: 'email_agent/terraform/ecr/'
 
     steps:
       # Step 1: Checkout Repository

@@ -8,10 +8,6 @@ variable "lambda_role_name" {
   default = "gmail-agent-lambda-role"
 }
 
-variable "ecr_repo_name" {
-  type    = string
-  default = "gmail-agent"
-}
 
 # Image tag variable (can be set via TF_VAR_image_tag or pipeline)
 variable "image_tag" {
@@ -23,4 +19,20 @@ variable "openai_api_key" {
   type      = string
   sensitive = true
   default   = ""
+}
+
+variable "GMAIL_TOKEN"{
+
+} 
+variable "GMAIL_REFRESH_TOKEN" {
+
+}
+variable "GMAIL_CLIENT_ID" {
+
+}
+variable "GMAIL_CLIENT_SECRET " {
+
+}
+variable "ecr_uri" {
+  
 }
