@@ -5,7 +5,7 @@ resource "aws_lambda_function" "gmail_agent" {
   package_type  = "Image"
   image_uri     = "${var.ecr_uri}:${var.image_tag}"
 
-  memory_size = 
+  memory_size = 1536
   timeout     = 300
 
   environment {
