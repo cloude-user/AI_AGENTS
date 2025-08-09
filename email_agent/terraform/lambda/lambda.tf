@@ -3,7 +3,7 @@ resource "aws_lambda_function" "gmail_agent" {
   function_name = "gmail-agent"
   role          = aws_iam_role.lambda_exec_role.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.gmail_agent_repo.repository_url}:${var.image_tag}"
+  image_uri     = "${var.ecr_uri}:${var.image_tag}"
 
   memory_size = 
   timeout     = 300
@@ -26,7 +26,7 @@ resource "aws_lambda_function" "gmail_agent" {
 resource "aws_cloudwatch_event_rule" "gmail_agent_schedule" {
   name                = "gmail-agent-daily-10am-utc"
   description         = "Run Gmail Agent once a day at 10:00 AM UTC"
-  schedule_expression = "cron(0 10 * * ? *)"
+  schedule_expression = "cron(0 */15 * * ? *)"
 }
 
 resource "aws_cloudwatch_event_target" "gmail_agent_target" {

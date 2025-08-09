@@ -4,3 +4,5 @@ GMAIL_TOKEN   ="ya29.A0AS3H6NyF0WPKbOYR_UbROZjHvKtbfyzXwxGZOZdK7O3unx6Rrnd0KJSRv
 GMAIL_REFRESH_TOKEN ="1//0ggbHHNjfWegnCgYIARAAGBASNwF-L9Irdz8ESESYFA9SkSn1YSBlPOguIji-9X_ZVK8Gf7UYV1JV8WXIKv2jtoRakjJrEeH7VfU"
 GMAIL_CLIENT_ID = "670645107880-5v1ghj5o05msm5n51vagg7b1tk799jqf.apps.googleusercontent.com"
 GMAIL_CLIENT_SECRET = "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"
+ecr_uri= "692859915147.dkr.ecr.us-east-2.amazonaws.com/gmail-agent"
+image_tag= "0.0.1"
