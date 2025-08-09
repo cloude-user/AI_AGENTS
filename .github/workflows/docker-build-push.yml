@@ -45,17 +45,40 @@ jobs:
           role-to-assume: ${{secrets.TERRAFORM_ROLE  }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Fetch all tags and history
+        run: |
+          git fetch --depth=0 --tags
+          echo "Available tags:"
+          git tag --sort=-version:refname | head -10
+
       - name: Determine semver tag
         id: semver
         run: |
           set -euo pipefail
           bump="${{ github.event.inputs.bump || 'patch' }}"
           echo "Bump type: $bump"
-          # try to get latest tag, fallback to 0.0.0
-          latest=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          
+          # Get the latest tag from all fetched tags
+          latest=$(git tag --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || echo "v0.0.0")
+          echo "Raw latest tag found: $latest"
+          
+          # Remove 'v' prefix if present
           latest=${latest#v}
-          IFS='.' read -r maj min pat <<< "$latest" || exit 1
-          maj=${maj:-0}; min=${min:-0}; pat=${pat:-0}
+          echo "Latest version (without v): $latest"
+          
+          # Parse version components with better error handling
+          if [[ "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            maj=${BASH_REMATCH[1]}
+            min=${BASH_REMATCH[2]}
+            pat=${BASH_REMATCH[3]}
+          else
+            echo "No valid semver tags found, starting from 0.0.0"
+            maj=0; min=0; pat=0
+          fi
+          
+          echo "Current version: $maj.$min.$pat"
+          
+          # Increment based on bump type
           if [ "$bump" = "major" ]; then
             maj=$((maj + 1)); min=0; pat=0
           elif [ "$bump" = "minor" ]; then
@@ -63,9 +86,10 @@ jobs:
           else
             pat=$((pat + 1))
           fi
+          
           new="v${maj}.${min}.${pat}"
-          echo "Latest tag: v$latest"
-          echo "New tag: $new"
+          echo "Previous version: v$latest"
+          echo "New version: $new"
           echo "new_tag=$new" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag (if not existing)
@@ -75,16 +99,25 @@ jobs:
         run: |
           set -euo pipefail
           new_tag=${{ steps.semver.outputs.new_tag }}
+          
+          # Fetch tags again to be sure
           git fetch --tags
-          if git rev-parse "$new_tag" >/dev/null 2>&1; then
+          
+          # Check if tag already exists
+          if git show-ref --tags --quiet --verify -- "refs/tags/$new_tag"; then
             echo "Tag $new_tag already exists."
+            echo "Existing tags:"
+            git tag --sort=-version:refname | head -5
+            exit 1
           else
+            echo "Creating new tag: $new_tag"
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git tag "$new_tag"
             git push origin "$new_tag"
-            echo "Pushed tag $new_tag"
+            echo "Successfully pushed tag $new_tag"
           fi
+          
           echo "image_tag=${new_tag#v}" >> $GITHUB_OUTPUT
 
       - name: Login to ECR
@@ -99,18 +132,26 @@ jobs:
           IMAGE_TAG: ${{ steps.push_tag.outputs.image_tag }}
           ECR_URI: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}
         run: |
-          # The command below uses email_agent/src as the build context.
-          # The -f flag is now not needed since the Dockerfile is in the context directory.
+          echo "Building image with tag: $IMAGE_TAG"
+          
+          # Build the Docker image
           docker build -t ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} email_agent/src/
+          
+          # Tag for ECR
           docker tag ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} ${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}
-          docker tag ${{ env.ECR_REPO_NAME }}:${{ env.IMAGE_TAG }} ${{ env.ECR_URI }}:latest
+          
           echo "built_image=${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}" >> "$GITHUB_OUTPUT"
+          echo "Built and tagged image: ${{ env.ECR_URI }}:${{ env.IMAGE_TAG }}"
 
       - name: Push image to ECR
         id: push-image
         run: |
           IMAGE_TAG=${{ steps.push_tag.outputs.image_tag }}
           ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
+          
+          echo "Pushing image: ${ECR_URI}:${IMAGE_TAG}"
           docker push ${ECR_URI}:${IMAGE_TAG}
           docker push ${ECR_URI}:latest
+          
           echo "pushed_image=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "Successfully pushed: ${ECR_URI}:${IMAGE_TAG}"
