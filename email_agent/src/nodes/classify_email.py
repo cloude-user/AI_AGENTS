@@ -1,5 +1,5 @@
-from ..services.llm_client import LLMClient
-from ..state import AppState
+from services.llm_client import LLMClient
+from state import AppState
 
 def classify_email_node(state: AppState) -> AppState:
     llm = LLMClient()

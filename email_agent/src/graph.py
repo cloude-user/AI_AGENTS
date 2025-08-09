@@ -1,9 +1,9 @@
 from langgraph.graph import StateGraph, START, END
-from .state import AppState
-from .nodes.fetch_emails import fetch_emails_node
-from .nodes.classify_email import classify_email_node
-from .nodes.handle_important import handle_important_node
-from .nodes.handle_other import handle_other_node
+from state import AppState
+from nodes.fetch_emails import fetch_emails_node
+from nodes.classify_email import classify_email_node
+from nodes.handle_important import handle_important_node
+from nodes.handle_other import handle_other_node
 
 def build_graph():
     workflow = StateGraph(AppState)

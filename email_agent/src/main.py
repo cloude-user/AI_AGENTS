@@ -1,5 +1,5 @@
-from .graph import build_graph
-from .state import AppState
+from graph import build_graph
+from state import AppState
 
 def lambda_handler(event, context):
     app = build_graph()

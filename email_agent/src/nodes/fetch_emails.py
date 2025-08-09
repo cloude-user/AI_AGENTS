@@ -1,5 +1,5 @@
-from ..services.gmail_client import GmailClient
-from ..state import AppState
+from services.gmail_client import GmailClient
+from state import AppState
 
 def fetch_emails_node(state: AppState) -> AppState:
     gmail = GmailClient()
