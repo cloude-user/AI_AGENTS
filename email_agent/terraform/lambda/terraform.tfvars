@@ -1,0 +1,10 @@
+aws_region = "us-east-2"
+openai_api_key   = "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"
+gmail_token   ="ya29.A0AS3H6NyF0WPKbOYR_UbROZjHvKtbfyzXwxGZOZdK7O3unx6Rrnd0KJSRvf508Y-m8WgHPnbkEyvSJGlkZWiR1sGBBvHDfNNbfNgUGOQMFEqILo1ynP27uBMC630_6PRwfrFzSrZ36RJAiMZKGJtCd624h0ae0OhmEtg9ua9kMZSjKafOscnUh0RrJ1bA4Nlhf9B34ZoaCgYKAZsSARYSFQHGX2MiDZQaRHbDU0doryFdSr0bvA0206"
+gmail_refresh_token ="1//0ggbHHNjfWegnCgYIARAAGBASNwF-L9Irdz8ESESYFA9SkSn1YSBlPOguIji-9X_ZVK8Gf7UYV1JV8WXIKv2jtoRakjJrEeH7VfU"
+gmail_client_id = "670645107880-5v1ghj5o05msm5n51vagg7b1tk799jqf.apps.googleusercontent.com"
+gmail_client_secret = "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"
+ecr_uri= "692859915147.dkr.ecr.us-east-2.amazonaws.com/gmail-agent"
+image_tag= "0.0.8"
+
+
