@@ -10,7 +10,8 @@ openai==1.43.0
 # LangChain ecosystem (mutually compatible)
 langchain==0.2.12
 langchain-core==0.2.24
-langgraph==0.0.43
+langgraph==0.1.0
+
 
 # HTTP & utilities
 requests==2.32.3

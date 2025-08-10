@@ -5,6 +5,6 @@ gmail_refresh_token ="1//0ggbHHNjfWegnCgYIARAAGBASNwF-L9Irdz8ESESYFA9SkSn1YSBlPO
 gmail_client_id = "670645107880-5v1ghj5o05msm5n51vagg7b1tk799jqf.apps.googleusercontent.com"
 gmail_client_secret = "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"
 ecr_uri= "692859915147.dkr.ecr.us-east-2.amazonaws.com/gmail-agent"
-image_tag= "0.0.12"
+image_tag= "0.0.13"
 
 
