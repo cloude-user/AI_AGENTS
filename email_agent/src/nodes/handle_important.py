@@ -1,17 +1,23 @@
-from services.gmail_client import GmailClient
-from state import AppState
+from services.llm_client import LLMClient
+import logging
 
-def handle_important_node(state: AppState) -> AppState:
-    gmail = GmailClient()
+logger = logging.getLogger("handle_important_node")
+logger.setLevel(logging.INFO)
 
-    for email in state.get("emails", []):
-        if email.get("is_important"):
-            gmail.mark_as_important(email["id"])
-            # Example: auto-reply
-            gmail.send_message(
-                to=email["sender"],
-                subject="Re: " + email["subject"],
-                body="Thank you for your email. I will get back to you shortly."
-            )
+llm = LLMClient()
 
-    return state
+def handle_important_node(state):
+    emails = state.get("emails", [])
+    updated = []
+
+    for email in emails:
+        if email["classification"]["label"] == "important":
+            subj = email.get("subject", "")
+            body = email.get("body", "")
+            reply = llm.generate_reply(subj, body, tone="professional")
+            email["draft_reply"] = reply
+            logger.info(f"Drafted reply for: {subj}")
+
+        updated.append(email)
+
+    return {**state, "emails": updated}
