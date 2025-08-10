@@ -1,0 +1,208 @@
+name: Build, Tag, Push to ECR
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Which part to bump: major|minor|patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+        required: true
+        default: 'patch'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'email_agent/src/**'
+    types: [opened, synchronize, reopened]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPO_NAME: gmail-agent
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # required for checkout
+      id-token: write   # required for OIDC assume role
+      issues: write
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.TOKEN }}
+
+      - name: Configure AWS credentials via OIDC (Assume Role)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.TERRAFORM_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Fetch all tags and history
+        run: |
+          git fetch --unshallow --tags || git fetch --tags
+          echo "=== Available tags ==="
+          git tag --sort=-version:refname | head -10 || echo "No tags found"
+          echo "=== Current branch and commit ==="
+          echo "Branch: $(git branch --show-current)"
+          echo "Commit: $(git rev-parse HEAD)"
+
+      - name: Determine semver tag
+        id: semver
+        run: |
+          set -euo pipefail
+          
+          # For PR events, we don't have workflow_dispatch inputs, so default to patch
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            bump="patch"
+          else
+            bump="${{ github.event.inputs.bump || 'patch' }}"
+          fi
+          
+          echo "Event: ${{ github.event_name }}"
+          echo "Bump type: $bump"
+          
+          # Get the latest tag from all fetched tags
+          latest=$(git tag --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -1 2>/dev/null || echo "")
+          
+          if [ -z "$latest" ]; then
+            echo "No existing semver tags found, starting from v0.0.0"
+            latest="0.0.0"
+          else
+            echo "Raw latest tag found: $latest"
+            # Remove 'v' prefix if present
+            latest=${latest#v}
+          fi
+          
+          echo "Latest version (without v): $latest"
+          
+          # Parse version components with better error handling
+          if [[ "$latest" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            maj=${BASH_REMATCH[1]}
+            min=${BASH_REMATCH[2]}
+            pat=${BASH_REMATCH[3]}
+          else
+            echo "Could not parse version, starting from 0.0.0"
+            maj=0; min=0; pat=0
+          fi
+          
+          echo "Current version: $maj.$min.$pat"
+          
+          # Increment based on bump type
+          if [ "$bump" = "major" ]; then
+            maj=$((maj + 1)); min=0; pat=0
+          elif [ "$bump" = "minor" ]; then
+            min=$((min + 1)); pat=0
+          else
+            pat=$((pat + 1))
+          fi
+          
+          new_version="${maj}.${min}.${pat}"
+          new_tag="v${new_version}"
+          
+          echo "Previous version: $latest"
+          echo "New version: $new_version"
+          echo "New tag: $new_tag"
+          
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag (if not existing)
+        id: push_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          new_tag=${{ steps.semver.outputs.new_tag }}
+          new_version=${{ steps.semver.outputs.new_version }}
+          
+          echo "Checking if tag $new_tag exists..."
+          
+          # Fetch tags again to be absolutely sure
+          git fetch --tags
+          
+          # Check if tag already exists using a more reliable method
+          if git ls-remote --tags origin | grep -q "refs/tags/$new_tag$"; then
+            echo "❌ Tag $new_tag already exists in remote repository."
+            echo "Existing tags:"
+            git tag --sort=-version:refname | head -5
+            echo "This suggests the version calculation is incorrect."
+            exit 1
+          else
+            echo "✅ Tag $new_tag does not exist, creating it..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            
+            # Create and push the tag
+            git tag "$new_tag" -m "Release $new_tag"
+            git push origin "$new_tag"
+            echo "Successfully pushed tag $new_tag"
+          fi
+          
+          echo "image_tag=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Login to ECR
+        id: login-ecr
+        run: |
+          echo "Logging into ECR..."
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+      - name: Build and tag Docker image
+        id: build-image
+        env:
+          IMAGE_TAG: ${{ steps.push_tag.outputs.image_tag }}
+          ECR_URI: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}
+        run: |
+          echo "Building image with tag: $IMAGE_TAG"
+          echo "ECR URI: $ECR_URI"
+          
+          # Verify Dockerfile exists
+          if [ ! -f "email_agent/src/Dockerfile" ]; then
+            echo "❌ Dockerfile not found at email_agent/src/Dockerfile"
+            ls -la email_agent/src/ || echo "email_agent/src/ directory not found"
+            exit 1
+          fi
+          
+          # Build the Docker image
+          docker build -t ${{ env.ECR_REPO_NAME }}:$IMAGE_TAG email_agent/src/
+          
+          # Tag for ECR (with version and latest)
+          docker tag ${{ env.ECR_REPO_NAME }}:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+          docker tag ${{ env.ECR_REPO_NAME }}:$IMAGE_TAG $ECR_URI:latest
+          
+          echo "built_image=$ECR_URI:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "✅ Built and tagged image: $ECR_URI:$IMAGE_TAG"
+
+      - name: Push image to ECR
+        id: push-image
+        run: |
+          IMAGE_TAG=${{ steps.push_tag.outputs.image_tag }}
+          ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
+          
+          echo "Pushing images to ECR..."
+          echo "Image with version tag: ${ECR_URI}:${IMAGE_TAG}"
+          echo "Image with latest tag: ${ECR_URI}:latest"
+          
+          # Push both version and latest tags
+          docker push ${ECR_URI}:${IMAGE_TAG}
+          docker push ${ECR_URI}:latest
+          
+          echo "pushed_image=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "✅ Successfully pushed: ${ECR_URI}:${IMAGE_TAG}"
+
+      - name: Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Tag**: ${{ steps.semver.outputs.new_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag**: ${{ steps.push_tag.outputs.image_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECR Image**: ${{ steps.build-image.outputs.built_image }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
