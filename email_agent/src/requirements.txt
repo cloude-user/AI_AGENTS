@@ -8,9 +8,10 @@ google-auth-oauthlib==1.2.1
 openai==1.43.0
 
 # LangChain ecosystem (mutually compatible)
+langgraph==0.0.48
 langchain==0.2.12
 langchain-core==0.2.24
-langgraph==0.0.48
+
 
 
 
