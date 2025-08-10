@@ -1,10 +1,16 @@
 from services.llm_client import LLMClient
-from state import AppState
+from typing import Dict, Any
 
-def classify_email_node(state: AppState) -> AppState:
+def classify_email_node(state: Dict[str,Any]) -> Dict[str,Any]:
+    emails = state.get("emails",[])
     llm = LLMClient()
-    for email in state.get("emails", []):
-        classification = llm.classify(email["snippet"])
-        email["classification"] = classification
-        email["is_important"] = classification.lower() == "important"
+    results=[]
+    for e in emails:
+        subj = e.get("subject","")
+        body = e.get("body", e.get("snippet",""))
+        c = llm.classify_email(subj, body)
+        e["classification"]=c["label"]
+        e["classification_confidence"]=c["confidence"]
+        results.append(e)
+    state["emails"]=results
     return state

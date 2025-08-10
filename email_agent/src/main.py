@@ -1,14 +1,18 @@
+import os, logging
 from graph import build_graph
-from state import AppState
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+app = build_graph()
 
 def lambda_handler(event, context):
-    app = build_graph()
-    initial_state: AppState = {
-        "emails": [],
-        "processed_count": 0
-    }
-    final_state = app.invoke(initial_state)
-    return {"status": "success", "processed": final_state.get("processed_count", 0)}
-
-if __name__ == "__main__":
-    print(lambda_handler({}, {}))
+    # allow overriding fetch count via event
+    initial_state = {"MAX_FETCH": int(event.get("max_fetch", os.getenv("MAX_FETCH", 10)))}
+    try:
+        final = app.invoke(initial_state)
+        logger.info("Workflow finished")
+        return {"status":"ok","processed": len(final.get("emails",[]))}
+    except Exception as e:
+        logger.exception("Workflow error")
+        raise
