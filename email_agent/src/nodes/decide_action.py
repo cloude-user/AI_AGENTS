@@ -1,12 +1,11 @@
 import logging
 from services.llm_client import LLMClient
+from state import AppState
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 llm = LLMClient()
 
-def decide_action_node(state):
+def decide_action_node(state: AppState) -> AppState:
     emails = state.get("emails", [])
     processed = []
 
@@ -14,14 +13,16 @@ def decide_action_node(state):
         label = email.get("classification", {}).get("label", "unknown")
 
         if label == "important":
-            # Generate reply draft
-            reply = llm.generate_reply(email.get("subject", ""), email.get("body", ""))
+            reply = llm.generate_reply(
+                email.get("subject", ""),
+                email.get("body", ""),
+                tone="professional"
+            )
             email["draft_reply"] = reply
-            logger.info(f"Drafted reply for: {email.get('subject')}")
-        elif label in ["promotion", "spam"]:
-            # Mark for deletion
+            logger.info("Drafted reply for: %s", email.get("subject"))
+        elif label in ("promotion", "spam"):
             email["delete"] = True
-            logger.info(f"Marked for deletion: {email.get('subject')}")
+            logger.info("Marked for deletion: %s", email.get("subject"))
 
         processed.append(email)
 

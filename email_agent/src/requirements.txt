@@ -4,22 +4,22 @@ google-auth==2.35.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
 
-# OpenAI (latest stable for new API)
+# OpenAI
 openai==1.43.0
 
-# LangChain ecosystem (mutually compatible)
+# LangChain ecosystem
 langgraph==0.0.48
 langchain==0.2.12
 langchain-core==0.2.24
 
-
-
-
 # HTTP & utilities
 requests==2.32.3
 httpx==0.27.0
-pydantic==2.5.3
+pydantic==2.8.2
 typing-extensions==4.8.0
 
 # AWS SDK
 boto3==1.34.34
+
+# Optional but recommended
+aws-lambda-powertools[logger,tracer]==2.38.0

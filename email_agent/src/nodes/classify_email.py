@@ -1,21 +1,20 @@
-from services.llm_client import LLMClient
 import logging
+from services.llm_client import LLMClient
+from state import AppState
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
 llm = LLMClient()
 
-def classify_email_node(state):
+def classify_email_node(state: AppState) -> AppState:
     emails = state.get("emails", [])
-    classified_emails = []
+    classified = []
 
     for email in emails:
         subj = email.get("subject", "")
         body = email.get("body", "")
         classification = llm.classify_email(subj, body)
         email["classification"] = classification
-        classified_emails.append(email)
+        classified.append(email)
 
-    logger.info(f"Classified {len(classified_emails)} emails")
-    return {**state, "emails": classified_emails}
+    logger.info("Classified %d emails", len(classified))
+    return {**state, "emails": classified}

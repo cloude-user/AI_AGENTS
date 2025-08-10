@@ -1,15 +1,13 @@
-from services.gmail_client import GmailClient
 from typing import Dict, Any
 import logging
+from services.gmail_client import GmailClient
+from state import AppState
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
-def fetch_emails_node(state: Dict[str,Any]) -> Dict[str,Any]:
+def fetch_emails_node(state: AppState) -> AppState:
     max_fetch = int(state.get("MAX_FETCH", 10))
     gmail = GmailClient()
     emails = gmail.fetch_unread_emails(max_results=max_fetch)
-    state["emails"]=emails
     logger.info("Fetched %d emails", len(emails))
-    logger.info("Fetched %d emails", emails)
-    return state
+    return {**state, "emails": emails}
