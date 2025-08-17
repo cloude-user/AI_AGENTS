@@ -17,3 +17,6 @@ def lambda_handler(event, context):
     except Exception as e:
         logger.exception("Workflow error")
         return {"statusCode": 500, "body": str(e)}
+
+
+lambda_handler("event","context")
