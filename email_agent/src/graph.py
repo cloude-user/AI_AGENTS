@@ -1,7 +1,11 @@
 from langgraph.graph import StateGraph
-from langgraph.constants import START, END
-from state import AppState
+from typing import Literal
 
+# Define START and END constants
+START: Literal["__start__"] = "__start__"
+END: Literal["__end__"] = "__end__"
+
+from state import AppState
 from nodes.fetch_emails import fetch_emails_node
 from nodes.classify_email import classify_email_node
 from nodes.decide_action import decide_action_node
