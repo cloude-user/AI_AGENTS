@@ -1,19 +1,26 @@
 name: Terraform apply-lambda.
 
-on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'email_agent/terraform/lambda/**'
-    types: [opened, synchronize, reopened]
+# on:
+#   pull_request:
+#     branches:
+#       - main
+#     paths:
+#       - 'email_agent/terraform/lambda/**'
+    # types: [opened, synchronize, reopened]
   # push:
   #   branches:
   #     - main 
   #     - feature/**
   #   paths:
   #     - 'email_agent/terraform/ecr/**'
-
+on: 
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Apply Terraform changes'
+        type: boolean
+        default: false
+        required: true
 
 jobs:
   terraform:

@@ -1,3 +1,6 @@
-image_tag= "imge_tag"
-openai_api_key = "your_open_api_key"
-gmail_json_token = "token"
+aws_region = "us-east-2"
+openai_api_key   = "your-key"
+ecr_uri= "uri"
+image_tag= "0.0.19"
+
+
